@@ -1,0 +1,65 @@
+/* dsa.css */
+
+.contain {
+   
+    margin-top: 50px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  h1 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  
+  .in[type="text"], .bu{
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+  }
+  
+  .in[type="text"]:focus, .bu:focus {
+    outline: none;
+    border-color: #250092d6;
+  }
+  
+  .in[type="text"] {
+    width: calc(50% - 15px);
+  }
+  
+  .bu {
+    background-color: #250092d6;
+    color: #fff;
+    cursor: pointer;
+  }
+  
+  .bu:hover {
+    background-color: #250092d6;
+  }
+  
+  ul {
+    padding-left: 0;
+    list-style: none;
+  }
+  
+  li {
+    margin-bottom: 10px;
+  }
+  
+  .completed {
+    text-decoration: line-through;
+  }
+  
+  p {
+    font-size: 18px;
+    color: #333;
+    margin-top: 20px;
+  }
+  
