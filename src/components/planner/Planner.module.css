@@ -1,5 +1,13 @@
 /* Planner.module.css */
-
+button {
+  padding: 8px 20px;
+  background-color: #250092d6;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 2px;
+}
 .planner_container {
   display: flex;
   justify-content: space-between;
@@ -111,6 +119,7 @@ textarea {
   border: 1px solid #0000002e;
   border-radius: 4px;
 }
+
 
 /* Todo section styles */
 .todo_section {

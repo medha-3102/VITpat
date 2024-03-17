@@ -1,65 +1,106 @@
 /* dsa.css */
 
 .contain {
-   
-    margin-top: 50px;
-    padding: 15px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  h1 {
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 20px;
-  }
-  
-  
-  .in[type="text"], .bu{
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
-    transition: border-color 0.3s ease;
-  }
-  
-  .in[type="text"]:focus, .bu:focus {
-    outline: none;
-    border-color: #250092d6;
-  }
-  
-  .in[type="text"] {
-    width: calc(50% - 15px);
-  }
-  
-  .bu {
-    background-color: #250092d6;
-    color: #fff;
-    cursor: pointer;
-  }
-  
-  .bu:hover {
-    background-color: #250092d6;
-  }
-  
-  ul {
-    padding-left: 0;
-    list-style: none;
-  }
-  
-  li {
-    margin-bottom: 10px;
-  }
-  
-  .completed {
-    text-decoration: line-through;
-  }
-  
-  p {
-    font-size: 18px;
-    color: #333;
-    margin-top: 20px;
-  }
-  
+  max-width: 100%;
+  margin-top: 50px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+input[type="text"] {
+  width: calc(100% - 20px);
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  padding: 8px 20px;
+  background-color: #250092d6;
+
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+button:hover {
+  background-color: #250092d6;
+
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+li span {
+  flex: 1;
+}
+
+button.complete {
+  background-color: #28a745;
+}
+
+button.delete {
+  background-color: #dc3545;
+}
+
+p {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content p {
+  font-size: 18px;
+}
+
+.modal button {
+  padding: 8px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal button:hover {
+  background-color: #0056b3;
+}

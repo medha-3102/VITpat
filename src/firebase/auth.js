@@ -6,18 +6,54 @@ import {
   sendEmailVerification,
   updatePassword,
   signInWithPopup,
-  GoogleAuthProvider,
+  GoogleAuthProvider
 } from "firebase/auth";
 import { addDoc, collection } from "firebase/firestore";
 
-export const doCreateUserWithEmailAndPassword = async (email, password, name) => {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  await addUserDataToFirestore(userCredential.user.uid, email, name);
-  return userCredential;
+import { useState, useEffect } from "react";
+
+// Function to display a message popup
+const showMessagePopup = (message) => {
+  // Implement your message popup logic here, such as using a toast or a modal
+  alert(message); // For demonstration purposes, using a simple alert
 };
 
-export const doSignInWithEmailAndPassword = (email, password) => {
-  return signInWithEmailAndPassword(auth, email, password);
+export const doCreateUserWithEmailAndPassword = async (email, password, name) => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    await addUserDataToFirestore(userCredential.user.uid, email, name);
+    return userCredential;
+  } catch (error) {
+    // Handle specific authentication errors
+    switch (error.code) {
+      case 'auth/email-already-in-use':
+        showMessagePopup('Email already exists. Please try with a different email.');
+        break;
+      case 'auth/weak-password':
+        showMessagePopup('Password is too weak. Please use a stronger password.');
+        break;
+      default:
+        showMessagePopup('An error occurred during registration. Please try again later.');
+    }
+    // Prevent re-throwing the error
+    return null;
+  }
+};
+
+export const doSignInWithEmailAndPassword = async (email, password) => {
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    return true; // Sign in successful
+  } catch (error) {
+    // Handle specific authentication errors
+
+        showMessagePopup('Invalid email or password. Please try again.');
+        
+   
+    
+    // Prevent re-throwing the error
+    return false;
+  }
 };
 
 export const doSignInWithGoogle = async () => {
@@ -34,8 +70,22 @@ export const doSignInWithGoogle = async () => {
   }
 };
 
-export const doSignOut = () => {
-  return auth.signOut();
+export const doSignOut = async () => {
+  await auth.signOut();
+};
+export const useSignOutMessage = () => {
+  useEffect(() => {
+    const handleSignOut = async () => {
+      try {
+        await auth.signOut();
+        showMessagePopup('You have been successfully signed out.');
+      } catch (error) {
+        console.error('Error occurred during sign-out:', error);
+      }
+    };
+
+    handleSignOut();
+  }, []);
 };
 
 export const doPasswordReset = (email) => {

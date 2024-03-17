@@ -44,7 +44,7 @@ const Header = () => {
                 userLoggedIn
                     ?
                     <>
-                        <div className={styles.top_strip}>
+                        <div className={styles.top_strip}  style={{color:' #250092d6'}}>
                             <button onClick={() => { doSignOut().then(() => { navigate('/login') }) }} className={styles.leaderboard_button}>Logout</button>
 
 

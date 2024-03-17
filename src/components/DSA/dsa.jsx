@@ -1,11 +1,15 @@
 // DSAApp.js
 import React, { useState, useEffect } from 'react';
-import Modal from './model';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import Modal from './model'; // Assuming Modal component is in the same directory
+import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
+import { useAuth } from '../../contexts/authContext'; // Import useAuth hook for Firebase authentication
 
 import './dsa.css';
 
 function DSAApp() {
+  const { currentUser } = useAuth(); // Get the current user from the authentication context
+  const userId = currentUser.uid; // Get the current user's unique ID
+
   const [topics, setTopics] = useState([]);
   const [newTopic, setNewTopic] = useState('');
   const [newCategory, setNewCategory] = useState('');
@@ -19,62 +23,83 @@ function DSAApp() {
   const [modalMessage, setModalMessage] = useState('');
   let interval;
 
-  // Function to load stored data from session storage
+  // Firestore instance
+  const firestore = getFirestore();
+
+  // Function to add score to Firestore
   const addScoreToFirestore = async (name, score) => {
     try {
-      const firestore = getFirestore();
-      const userRef = collection(firestore, 'students');
-      await addDoc(userRef, {
-        name: name,
-        score: score
-      });
+      const userScoresRef = collection(firestore, 'users', userId, 'scores'); // Reference to user's scores collection
+      await addDoc(userScoresRef, { name: name, score: score }); // Add score document to Firestore
       console.log('Score added to Firestore');
     } catch (error) {
       console.error('Error adding score to Firestore:', error);
     }
   };
 
-  useEffect(() => {
-    if (countMonths === 4) {
-      generateLeaderboard();
-      addScoreToFirestore('Student Name', score); // Change 'Student Name' to the actual user's name
+  // Function to retrieve user's score from Firestore
+  const fetchUserScoreFromFirestore = async () => {
+    try {
+      const userScoresRef = collection(firestore, 'users', userId, 'scores'); // Reference to user's scores collection
+      const scoresSnapshot = await getDocs(userScoresRef); // Get all documents in the user's scores collection
+      let totalScore = 0;
+      scoresSnapshot.forEach((doc) => {
+        totalScore += doc.data().score; // Sum up all scores
+      });
+      setScore(totalScore); // Set the total score state
+      console.log('User score fetched from Firestore:', totalScore);
+    } catch (error) {
+      console.error('Error fetching user score from Firestore:', error);
     }
-  }, [countMonths]);
+  };
+
+  useEffect(() => {
+    fetchUserScoreFromFirestore(); // Fetch user's score from Firestore when component mounts
+  }, []);
+
+  // Load data from session storage
   const loadFromSessionStorage = () => {
-    const storedTopics = sessionStorage.getItem('topics');
+    const storedTopics = sessionStorage.getItem(`${userId}_topics`);
     if (storedTopics) {
       setTopics(JSON.parse(storedTopics));
     }
-    const storedQuestionCount = sessionStorage.getItem('questionCount');
+  
+    // Load other data similarly...
+    const storedQuestionCount = sessionStorage.getItem(`${userId}_questionCount`);
     if (storedQuestionCount) {
       setQuestionCount(parseInt(storedQuestionCount));
     }
-    const storedScore = sessionStorage.getItem('score');
+  
+    const storedScore = sessionStorage.getItem(`${userId}_score`);
     if (storedScore) {
       setScore(parseInt(storedScore));
     }
-    const storedCountMonths = sessionStorage.getItem('countMonths');
+  
+    const storedCountMonths = sessionStorage.getItem(`${userId}_countMonths`);
     if (storedCountMonths) {
       setCountMonths(parseInt(storedCountMonths));
     }
-    const storedMonthlyScores = sessionStorage.getItem('monthlyScores');
+  
+    const storedMonthlyScores = sessionStorage.getItem(`${userId}_monthlyScores`);
     if (storedMonthlyScores) {
       setMonthlyScores(JSON.parse(storedMonthlyScores));
     }
   };
+  
 
   useEffect(() => {
     loadFromSessionStorage();
   }, []);
 
   useEffect(() => {
-    sessionStorage.setItem('topics', JSON.stringify(topics));
-    sessionStorage.setItem('questionCount', questionCount);
-    sessionStorage.setItem('score', score);
-    sessionStorage.setItem('countMonths', countMonths);
-    sessionStorage.setItem('monthlyScores', JSON.stringify(monthlyScores));
-  }, [topics, questionCount, score, countMonths, monthlyScores]);
+    sessionStorage.setItem(`${userId}_topics`, JSON.stringify(topics));
+    sessionStorage.setItem(`${userId}_questionCount`, questionCount);
+    sessionStorage.setItem(`${userId}_score`, score);
+    sessionStorage.setItem(`${userId}_countMonths`, countMonths);
+    sessionStorage.setItem(`${userId}_monthlyScores`, JSON.stringify(monthlyScores));
+  }, [userId, topics, questionCount, score, countMonths, monthlyScores]);
 
+  // Add topic function
   const addTopic = () => {
     if (newTopic.trim() !== '' && newCategory.trim() !== '') {
       const newQuestion = {
@@ -102,17 +127,21 @@ function DSAApp() {
       }
       setScore(score + points);
     }
+    // Store data in session storage...
     const storedScores = sessionStorage.getItem('scores');
     if (storedScores) {
       const scores = JSON.parse(storedScores);
-      scores.push({ name: 'Student Name', score: score });
+      scores.push({ name: currentUser.displayName || currentUser.email, score: score });
       sessionStorage.setItem('scores', JSON.stringify(scores));
     } else {
-      const scores = [{ name: 'Student Name', score: score }];
+      const scores = [{ name: currentUser.displayName || currentUser.email, score: score }];
       sessionStorage.setItem('scores', JSON.stringify(scores));
     }
+    // Add score to Firestore
+    addScoreToFirestore(currentUser.displayName || currentUser.email, score);
   };
 
+  // Delete topic function...
   const deleteTopic = (index) => {
     const updatedTopics = [...topics];
     updatedTopics.splice(index, 1);
@@ -120,11 +149,42 @@ function DSAApp() {
     setQuestionCount(questionCount - 1);
   };
 
+  // Toggle completion function...
   const toggleCompletion = (index) => {
     const updatedTopics = [...topics];
     updatedTopics[index].completed = !updatedTopics[index].completed;
     setTopics(updatedTopics);
   };
+
+  // Generate leaderboard function...
+  const generateLeaderboard = () => {
+    const sortedScores = [...monthlyScores].sort((a, b) => b - a);
+    const topStudents = sortedScores.slice(0, 10);
+    console.log('Monthly Leaderboard:', topStudents);
+  };
+
+  useEffect(() => {
+    if (countMonths === 4) {
+      generateLeaderboard();
+      addScoreToFirestore('Student Name', score); // Change 'Student Name' to the actual user's name
+    }
+  }, [countMonths]);
+
+  useEffect(() => {
+    sessionStorage.setItem('topics', JSON.stringify(topics));
+    sessionStorage.setItem('questionCount', questionCount);
+    sessionStorage.setItem('score', score);
+    sessionStorage.setItem('countMonths', countMonths);
+    sessionStorage.setItem('monthlyScores', JSON.stringify(monthlyScores));
+  }, [topics, questionCount, score, countMonths, monthlyScores]);
+
+  useEffect(() => {
+    interval = setInterval(() => {
+      setDaysElapsed((prevDays) => prevDays + 1);
+    }, 1000*3*5);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (questionCount < 30 && daysElapsed === 30) {
@@ -159,48 +219,33 @@ function DSAApp() {
     }
   }, [questionCount, countMonths, daysElapsed, score, monthlyScores]);
 
-  useEffect(() => {
-    interval = setInterval(() => {
-      setDaysElapsed((prevDays) => prevDays + 1);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const generateLeaderboard = () => {
-    const sortedScores = [...monthlyScores].sort((a, b) => b - a);
-    const topStudents = sortedScores.slice(0, 10);
-    console.log('Monthly Leaderboard:', topStudents);
-  };
-
   return (
     <div className="contain">
       <h1>4 months DSA Challenge!!</h1>
-      
       <p>Total Score: {score}</p>
-      <input className='in'
+      <input
         type="text"
         value={newTopic}
         onChange={(e) => setNewTopic(e.target.value)}
         placeholder="Enter new DSA question"
       />
-      <input className='in'
+      <input
         type="text"
         value={newCategory}
         onChange={(e) => setNewCategory(e.target.value)}
         placeholder="Enter category (easy, medium, hard)"
       />
-      <button className ='bu' onClick={addTopic}>Add</button>
+      <button onClick={addTopic}>Add</button>
       <ul>
         {topics.map((topic, index) => (
           <li key={index}>
             <span style={{ textDecoration: topic.completed ? 'line-through' : 'none' }}>
               {topic.statement} ({topic.category})
             </span>
-            <button className="bu" onClick={() => toggleCompletion(index)}>
+            <button onClick={() => toggleCompletion(index)}>
               {topic.completed ? 'Undo' : 'Complete'}
             </button>
-            <button className='bu' onClick={() => deleteTopic(index)}>Delete</button>
+            <button onClick={() => deleteTopic(index)}>Delete</button>
           </li>
         ))}
       </ul>
@@ -211,5 +256,3 @@ function DSAApp() {
 }
 
 export default DSAApp;
-
-
